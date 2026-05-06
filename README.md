@@ -5,7 +5,7 @@
 > **Lenguaje:** C (API Sockets POSIX, pthreads)  
 > **Despliegue:** Amazon Web Services (EC2)  
 > **Fecha de entrega:** Mayo 6 de 2026
-> **Integrantes:** Juan Andres Salsedo, Sebastian Granda Giraldo
+> > **Integrantes:** Juan Andres Salsedo, Sebastian Granda Giraldo
 
 ---
 
