@@ -1,59 +1,86 @@
-# PIBL-WS: Proxy Inverso, Balanceador de Carga y Web Server
-
-Proyecto desarrollado para la asignatura Telemática/Internet: Arquitectura y Protocolos.
+# PIBL-WS: Proxy Inverso + Balanceador de Carga + Web Server
 
 ## 1. Introducción
 
-Este proyecto implementa una arquitectura cliente/servidor compuesta por un Proxy Inverso + Balanceador de Carga, denominado PIBL, y tres servidores web backend denominados TWS.
+Este proyecto implementa un servidor web HTTP/1.1 (TWS) y un proxy inverso con balanceador de carga (PIBL), desarrollados en lenguaje C usando la API de sockets POSIX. La arquitectura permite distribuir peticiones HTTP entre múltiples servidores backend de forma concurrente, con soporte de caché en disco y registro de logs.
 
-El objetivo principal es recibir peticiones HTTP/1.1 desde clientes como navegador, Postman, curl o telnet, procesarlas mediante sockets, distribuirlas entre varios servidores web y retornar la respuesta correspondiente al cliente.
+## 2. Desarrollo
 
-La solución fue desarrollada usando la API Sockets y contempla concurrencia, balanceo Round Robin, sistema de logs, caché persistente en disco y despliegue en instancias EC2 de AWS.
+### Arquitectura
 
-## 2. Arquitectura general
+- **PIBL** (puerto 8080): recibe peticiones del cliente, aplica Round Robin entre 3 backends, implementa caché en disco con TTL configurable.
+- **TWS** (puertos 8081/8082/8083): servidor web que sirve archivos estáticos, soporta GET, HEAD y POST.
 
-La arquitectura está compuesta por los siguientes elementos:
+### Componentes
 
-- Cliente HTTP: navegador, Postman, curl o telnet.
-- PIBL: Proxy Inverso + Balanceador de Carga.
-- Servidores TWS: tres servidores web que contienen la misma aplicación web.
-- Caché local: almacenamiento en disco de recursos solicitados.
-- Logs: registro de peticiones y respuestas en consola y archivo.
+**TWS - Telematics Web Server**
+- Lenguaje: C con API Sockets POSIX
+- Concurrencia: un hilo POSIX (pthread) por conexión
+- Métodos: GET, HEAD, POST
+- Códigos HTTP: 200, 400, 404
+- Logger thread-safe con mutex (stdout + archivo)
+- Ejecución: `./tws <PORT> <LogFile> <DocumentRootFolder>`
 
-Flujo general:
+**PIBL - Proxy Inverso + Balanceador de Carga**
+- Lenguaje: C con API Sockets POSIX
+- Balanceo: Round Robin entre backends configurables
+- Caché: almacenamiento en disco con TTL parametrizable
+- Concurrencia: un hilo por conexión entrante
+- Archivo de configuración: puerto, TTL, lista de backends
+- Logger thread-safe (stdout + archivo)
+- Ejecución: `./pibl <ConfigFile> <LogFile>`
 
-1. El cliente envía una petición HTTP al PIBL.
-2. El PIBL recibe la conexión mediante sockets.
-3. El PIBL revisa si el recurso está disponible en caché y si su TTL sigue vigente.
-4. Si el recurso está en caché, responde directamente al cliente.
-5. Si no está en caché, selecciona un servidor backend usando Round Robin.
-6. El PIBL abre un nuevo socket hacia el servidor web seleccionado.
-7. El servidor TWS procesa la petición y retorna una respuesta HTTP.
-8. El PIBL almacena la respuesta en caché si aplica.
-9. El PIBL devuelve la respuesta final al cliente.
+### Archivo de configuración (pibl/config.txt)
+port=8080
+ttl=60
+backend=<IP>:8081
+backend=<IP>:8082
+backend=<IP>:8083
 
-## 3. Protocolos y conceptos usados
+### Compilación
 
-### HTTP/1.1
+```bash
+make
+```
 
-La solución procesa peticiones bajo el protocolo HTTP/1.1. Se soportan los métodos:
+### Ejecución local
 
-- GET: solicita un recurso y retorna su contenido.
-- HEAD: solicita los encabezados del recurso, sin retornar cuerpo.
-- POST: permite enviar datos al servidor mediante el cuerpo de la petición.
+```bash
+# Iniciar 3 instancias TWS
+./tws/tws 8081 /tmp/tws1.log ./web_content/case1 &
+./tws/tws 8082 /tmp/tws2.log ./web_content/case1 &
+./tws/tws 8083 /tmp/tws3.log ./web_content/case1 &
 
-### API Sockets
+# Iniciar PIBL
+./pibl/pibl pibl/config.txt /tmp/pibl.log &
+```
 
-La comunicación entre cliente, PIBL y servidores backend se realiza mediante sockets TCP. El PIBL actúa como servidor frente al cliente y como cliente frente a los servidores web backend.
+### Casos de prueba
 
-### Round Robin
+| Caso | Descripción |
+|------|-------------|
+| case1 | Página HTML con hipertextos e imagen |
+| case2 | Página HTML con múltiples imágenes |
+| case3 | Archivo único de ~1MB |
+| case4 | Múltiples archivos con tamaño total ~1MB |
 
-El balanceo de carga se implementa mediante la estrategia Round Robin. Cada nueva petición que no pueda ser respondida desde caché es enviada al siguiente servidor disponible en la lista de backends.
+### Despliegue en AWS
 
-Ejemplo:
+- 4 instancias EC2 Ubuntu (t2.micro)
+- 1 instancia PIBL con IP pública
+- 3 instancias TWS en red privada
+- Puertos abiertos: 8080 (PIBL), 8081-8083 (TWS)
 
-```txt
-Petición 1 -> Servidor 1
-Petición 2 -> Servidor 2
-Petición 3 -> Servidor 3
-Petición 4 -> Servidor 1
+## 3. Conclusiones
+
+- Se implementó exitosamente un proxy inverso y balanceador de carga en C puro usando sockets POSIX.
+- El mecanismo de caché en disco con TTL reduce la carga en los backends para recursos frecuentemente solicitados.
+- La concurrencia basada en pthreads permite atender múltiples clientes simultáneamente.
+- El protocolo HTTP/1.1 fue implementado correctamente con soporte para los métodos GET, HEAD y POST.
+
+## 4. Referencias
+
+- RFC 2616 - HTTP/1.1: https://datatracker.ietf.org/doc/rfc2616/
+- Beej's Guide to Network Programming: https://beej.us/guide/bgnet/
+- POSIX Threads Programming: https://hpc-tutorials.llnl.gov/posix/
+- AWS EC2 Documentation: https://docs.aws.amazon.com/ec2/
