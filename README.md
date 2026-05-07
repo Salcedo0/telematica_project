@@ -522,6 +522,9 @@ make pibl
 
 # Verificar desde máquina local:
 curl http://<IP_PUBLICA_PIBL>:8080/index.html
+
+
+#aqui esta la ip publica del pibl : http://3.87.102.19:8080/
 ```
 
 ---
