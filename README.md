@@ -44,32 +44,8 @@ La arquitectura completa se despliega sobre cuatro instancias EC2 de AWS: una in
 ---
 
 ## 2. Arquitectura del Sistema
+<img width="1400" height="1000" alt="image" src="https://github.com/user-attachments/assets/b2a14401-4eef-4171-940c-834a4ad4d65a" />
 
-```
-                    ┌──────────────────────────────────────────────────┐
-                    │                  AWS Cloud (VPC)                  │
-                    │                                                    │
-  Cliente HTTP      │  ┌─────────────────────────────────────────────┐  │
-  (browser /        │  │            PIBL  — IP Pública :8080          │  │
-   curl /           │  │                                               │  │
-   Postman)  ───────┼─►│  accept() loop ──► pthread_create()          │  │
-                    │  │                         │                     │  │
-                    │  │            proxy_thread()                     │  │
-                    │  │   ┌─────────────────────┴──────────┐         │  │
-                    │  │   │  Cache lookup (solo GET)        │         │  │
-                    │  │   │  HIT  → send desde disco → FIN │         │  │
-                    │  │   │  MISS → next_backend() [RR]    │         │  │
-                    │  │   └─────────────┬──────────────────┘         │  │
-                    │  └────────────────┼────────────────────────────┘  │
-                    │                   │   Red interna (privada)        │
-                    │          ┌────────┴──────────────────────┐        │
-                    │          │  ┌──────┐  ┌──────┐  ┌──────┐ │        │
-                    │          │  │:8081 │  │:8082 │  │:8083 │ │        │
-                    │          │  │ TWS  │  │ TWS  │  │ TWS  │ │        │
-                    │          │  └──────┘  └──────┘  └──────┘ │        │
-                    │          └───────────────────────────────┘        │
-                    └──────────────────────────────────────────────────┘
-```
 
 ### Flujo completo de una petición
 
