@@ -505,6 +505,7 @@ curl http://<IP_PUBLICA_PIBL>:8080/index.html
 
 #aqui esta la ip publica del pibl : http://3.87.102.19:8080/
 ```
+#aqui esta el link de aws desplegado
 http://54.242.25.139:8080/case1/index.html
 ---
 
