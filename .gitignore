@@ -1,0 +1,5 @@
+tws-pibl/cache/
+tws-pibl/pibl/pibl
+tws-pibl/pibl/*.o
+tws-pibl/*.pem
+/ANALISIS.md

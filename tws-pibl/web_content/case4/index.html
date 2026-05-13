@@ -1,11 +1,374 @@
 <!DOCTYPE html>
-<html>
-<head><title>Case 4 - Multiples archivos</title></head>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caso 4 · Múltiples archivos · TWS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d12;
+    --bg-elev: #11151c;
+    --bg-card: rgba(20, 25, 34, 0.7);
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #e6edf3;
+    --text-dim: #8b96a8;
+    --accent: #ff6b35;
+    --accent-soft: rgba(255, 107, 53, 0.12);
+    --ok: #3fb950;
+    --grid-line: rgba(255, 107, 53, 0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
+  body {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.08), transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(255, 107, 53, 0.05), transparent 50%);
+    background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+    line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  nav.topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(10, 13, 18, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: 0.05em; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .brand-name { color: var(--text); }
+  .brand-sub { color: var(--text-dim); font-family: 'Space Mono', monospace; font-weight: 400; font-size: 0.78rem; margin-left: 6px; }
+  .nav-cases { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-cases a {
+    color: var(--text-dim); text-decoration: none;
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.78rem; transition: all 0.2s ease;
+  }
+  .nav-cases a:hover { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+  .nav-cases a.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse  { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .fade-up { animation: fadeUp 0.6s ease-out both; }
+  .fade-up.d1 { animation-delay: 0.05s; }
+  .fade-up.d2 { animation-delay: 0.15s; }
+  .fade-up.d3 { animation-delay: 0.25s; }
+  .fade-up.d4 { animation-delay: 0.35s; }
+  .fade-up.d5 { animation-delay: 0.45s; }
+
+  .tag-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 10px; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-dim); background: rgba(255, 255, 255, 0.02);
+  }
+  .tag .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px var(--accent); }
+  h1.title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  h1.title .accent { color: var(--accent); }
+  .subtitle { color: var(--text-dim); max-width: 760px; font-size: 0.95rem; }
+
+  .status-bar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1px; margin-top: 32px;
+    background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  }
+  .stat { background: var(--bg-elev); padding: 16px 18px; }
+  .stat-label { font-size: 0.68rem; color: var(--text-dim); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-value { font-size: 1.05rem; color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .stat-value.ok::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+  .stat-value.accent { color: var(--accent); }
+
+  .section-title {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Syne', sans-serif; font-size: 1.05rem; margin: 40px 0 18px;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+  }
+  .section-title::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Downloads */
+  .dl-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  @media (max-width: 720px) { .dl-row { grid-template-columns: 1fr; } }
+  .dl-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; display: flex; align-items: center; gap: 16px;
+    transition: all 0.3s ease;
+  }
+  .dl-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 26px -10px rgba(255, 107, 53, 0.4); }
+  .dl-icon {
+    width: 56px; height: 68px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent) 0%, #cc4a1f 100%);
+    border-radius: 6px; position: relative;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px;
+    color: #0a0d12; font-weight: 700; letter-spacing: 0.04em; font-size: 0.7rem;
+  }
+  .dl-icon::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    border-style: solid; border-width: 0 12px 12px 0;
+    border-color: transparent var(--bg) transparent transparent;
+  }
+  .dl-info { flex: 1; min-width: 0; }
+  .dl-info .name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+  .dl-info .meta { color: var(--text-dim); font-size: 0.75rem; }
+  .dl-info .meta .accent { color: var(--accent); }
+  .dl-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: var(--accent); text-decoration: none;
+    font-family: 'Space Mono', monospace; font-weight: 700; letter-spacing: 0.05em;
+    padding: 10px 14px; border-radius: 8px; border: 1px solid var(--accent);
+    font-size: 0.82rem; transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .dl-btn:hover { background: var(--accent); color: #0a0d12; }
+
+  /* Gallery */
+  .gallery {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+  }
+  @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
+  .frame {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; transition: all 0.3s ease;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .frame:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px -10px rgba(255, 107, 53, 0.4);
+  }
+  .frame .meta { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .frame .meta .id { color: var(--accent); font-weight: 700; }
+  .frame .img-wrap {
+    background:
+      linear-gradient(45deg, #0d1117 25%, transparent 25%),
+      linear-gradient(-45deg, #0d1117 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #0d1117 75%),
+      linear-gradient(-45deg, transparent 75%, #0d1117 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 18px;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 160px; overflow: hidden;
+  }
+  .frame img { max-width: 100%; max-height: 160px; image-rendering: pixelated; transition: transform 0.4s ease; }
+  .frame:hover img { transform: scale(1.06); }
+  .frame .foot { font-size: 0.7rem; color: var(--text-dim); display: flex; justify-content: space-between; }
+  .frame .foot .ok { color: var(--ok); }
+
+  /* Total weight */
+  .total-card {
+    margin-top: 32px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; backdrop-filter: blur(6px);
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px;
+  }
+  @media (max-width: 720px) { .total-card { grid-template-columns: 1fr; } }
+  .total-card .label { font-family: 'Syne', sans-serif; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+  .total-card .stacked { display: flex; gap: 6px; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.05); }
+  .total-card .seg { height: 100%; }
+  .total-card .seg.s1 { background: var(--accent); flex: 26; }
+  .total-card .seg.s2 { background: #cc4a1f; flex: 26; }
+  .total-card .seg.s3 { background: #8b96a8; flex: 0.12; }
+  .total-card .seg.s4 { background: #5c6675; flex: 0.10; }
+  .total-card .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 0.75rem; color: var(--text-dim); }
+  .total-card .legend .dot { width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; display: inline-block; }
+  .total-card .total-value {
+    font-family: 'Syne', sans-serif; font-size: 2.6rem; font-weight: 800; color: var(--accent);
+    line-height: 1; text-align: right;
+  }
+  .total-card .total-value small { display: block; font-size: 0.7rem; color: var(--text-dim); font-weight: 400; letter-spacing: 0.15em; margin-top: 6px; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; backdrop-filter: blur(6px); margin-top: 32px;
+  }
+  .card h2 {
+    font-family: 'Syne', sans-serif; font-size: 1.15rem; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card h2::before { content: ''; width: 4px; height: 18px; background: var(--accent); border-radius: 2px; }
+  .card p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 14px; }
+  .card code { color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; font-size: 0.82rem; }
+  .mime-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;
+  }
+  .mime-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .mime-row .ext {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.78rem;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 4px 8px; border-radius: 4px; min-width: 56px; text-align: center;
+  }
+  .mime-row .arr { color: var(--text-dim); }
+  .mime-row .mime { color: var(--text); font-size: 0.85rem; }
+
+  footer { margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--border); text-align: center; color: var(--text-dim); font-size: 0.75rem; letter-spacing: 0.08em; }
+</style>
+</head>
 <body>
-<h1>Multiples archivos</h1>
-<img src="/img1.png" alt="img1">
-<img src="/img2.png" alt="img2">
-<a href="/file1.txt">Archivo 1</a>
-<a href="/file2.txt">Archivo 2</a>
+
+<nav class="topnav">
+  <div class="brand">
+    <span class="dot"></span>
+    <span class="brand-name">TWS // PIBL</span>
+    <span class="brand-sub">telematics web server</span>
+  </div>
+  <div class="nav-cases">
+    <a href="/case1/index.html">case_01</a>
+    <a href="/case2/index.html">case_02</a>
+    <a href="/case3/index.html">case_03</a>
+    <a href="/case4/index.html" class="active">case_04</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="fade-up d1">
+    <div class="tag-row">
+      <span class="tag"><span class="pulse-dot"></span>tipos MIME mixtos</span>
+      <span class="tag">~1 MB acumulado</span>
+      <span class="tag">case_04</span>
+    </div>
+    <h1 class="title">Múltiples archivos <span class="accent">~1MB total</span></h1>
+    <p class="subtitle">
+      Cuatro recursos heterogéneos (dos archivos de texto + dos imágenes PNG)
+      cuya suma se aproxima a un megabyte. Pone a prueba la detección de tipo MIME
+      por extensión y la entrega de carga binaria y textual en la misma sesión.
+    </p>
+  </div>
+
+  <div class="status-bar fade-up d2">
+    <div class="stat">
+      <div class="stat-label">Recursos</div>
+      <div class="stat-value accent">4</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Tipos MIME</div>
+      <div class="stat-value">2</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Total</div>
+      <div class="stat-value accent">~1.0 MB</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Estado</div>
+      <div class="stat-value ok">200 OK</div>
+    </div>
+  </div>
+
+  <div class="section-title fade-up d3">archivos · text/plain</div>
+
+  <div class="dl-row fade-up d3">
+    <div class="dl-card">
+      <div class="dl-icon">.TXT</div>
+      <div class="dl-info">
+        <div class="name">file1.txt</div>
+        <div class="meta">256 KB · <span class="accent">text/plain</span></div>
+      </div>
+      <a class="dl-btn" href="/case4/file1.txt" download>↓ descargar</a>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">.TXT</div>
+      <div class="dl-info">
+        <div class="name">file2.txt</div>
+        <div class="meta">256 KB · <span class="accent">text/plain</span></div>
+      </div>
+      <a class="dl-btn" href="/case4/file2.txt" download>↓ descargar</a>
+    </div>
+  </div>
+
+  <div class="section-title fade-up d4">galería · image/png</div>
+
+  <div class="gallery fade-up d4">
+    <div class="frame">
+      <div class="meta"><span class="id">img_01</span><span>image/png</span></div>
+      <div class="img-wrap"><img src="/case4/img1.png" alt="img1"></div>
+      <div class="foot"><span>/case4/img1.png</span><span class="ok">200</span></div>
+    </div>
+    <div class="frame">
+      <div class="meta"><span class="id">img_02</span><span>image/png</span></div>
+      <div class="img-wrap"><img src="/case4/img2.png" alt="img2"></div>
+      <div class="foot"><span>/case4/img2.png</span><span class="ok">200</span></div>
+    </div>
+  </div>
+
+  <div class="total-card fade-up d5">
+    <div>
+      <div class="label">Peso total acumulado</div>
+      <div class="stacked">
+        <div class="seg s1"></div>
+        <div class="seg s2"></div>
+        <div class="seg s3"></div>
+        <div class="seg s4"></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent)"></span>file1.txt · 256 KB</span>
+        <span><span class="dot" style="background:#cc4a1f"></span>file2.txt · 256 KB</span>
+        <span><span class="dot" style="background:#8b96a8"></span>img1.png · ~1.2 KB</span>
+        <span><span class="dot" style="background:#5c6675"></span>img2.png · ~1.0 KB</span>
+      </div>
+    </div>
+    <div class="total-value">
+      ~1.0 MB
+      <small>· 4 RECURSOS</small>
+    </div>
+  </div>
+
+  <div class="card fade-up d5">
+    <h2>Detección de MIME para tipos mixtos</h2>
+    <p>
+      Cada respuesta requiere un <code>Content-Type</code> coherente con el contenido.
+      TWS implementa la detección por extensión del archivo solicitado y mapea cada
+      sufijo al MIME correspondiente antes de generar la cabecera. Esto permite
+      servir texto plano y binarios PNG sobre la misma sesión sin corrupción.
+    </p>
+    <div class="mime-grid">
+      <div class="mime-row">
+        <span class="ext">.txt</span>
+        <span class="arr">→</span>
+        <span class="mime">text/plain</span>
+      </div>
+      <div class="mime-row">
+        <span class="ext">.png</span>
+        <span class="arr">→</span>
+        <span class="mime">image/png</span>
+      </div>
+      <div class="mime-row">
+        <span class="ext">.html</span>
+        <span class="arr">→</span>
+        <span class="mime">text/html</span>
+      </div>
+      <div class="mime-row">
+        <span class="ext">.*</span>
+        <span class="arr">→</span>
+        <span class="mime">application/octet-stream</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    TWS — Telematics Web Server · proyecto académico · HTTP/1.1 · pthreads · ANSI C
+  </footer>
+
+</div>
+
 </body>
 </html>

@@ -9,20 +9,23 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #define BUFFER_SIZE 8192
+#define BACKEND_CONNECT_TIMEOUT_SEC 3
+#define BACKEND_IO_TIMEOUT_SEC 10
 
 void *proxy_thread(void *arg) {
     ConnData *cd = (ConnData *)arg;
     int client_fd = cd->fd;
     free(cd);
-
-    char ip[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &((struct sockaddr_in *)&cd)->sin_addr, ip, sizeof(ip));
 
     /* ── Read request from client ── */
     char req_buf[BUFFER_SIZE * 2];
@@ -94,7 +97,25 @@ void *proxy_thread(void *arg) {
     baddr.sin_port   = htons(b->port);
     inet_pton(AF_INET, b->host, &baddr.sin_addr);
 
-    if (connect(back_fd, (struct sockaddr *)&baddr, sizeof(baddr)) < 0) {
+    int flags = fcntl(back_fd, F_GETFL, 0);
+    fcntl(back_fd, F_SETFL, flags | O_NONBLOCK);
+
+    int connect_ok = 0;
+    int rc = connect(back_fd, (struct sockaddr *)&baddr, sizeof(baddr));
+    if (rc == 0) {
+        connect_ok = 1;
+    } else if (errno == EINPROGRESS) {
+        struct pollfd pfd = { .fd = back_fd, .events = POLLOUT };
+        int pr = poll(&pfd, 1, BACKEND_CONNECT_TIMEOUT_SEC * 1000);
+        if (pr > 0) {
+            int soerr = 0;
+            socklen_t slen = sizeof(soerr);
+            if (getsockopt(back_fd, SOL_SOCKET, SO_ERROR, &soerr, &slen) == 0 && soerr == 0)
+                connect_ok = 1;
+        }
+    }
+
+    if (!connect_ok) {
         snprintf(logbuf, sizeof(logbuf), "Cannot connect to backend %s:%d", b->host, b->port);
         log_msg("ERROR", logbuf);
         send_error(client_fd, 502, "Bad Gateway");
@@ -102,6 +123,11 @@ void *proxy_thread(void *arg) {
         close(client_fd);
         return NULL;
     }
+
+    fcntl(back_fd, F_SETFL, flags);
+    struct timeval iot = { .tv_sec = BACKEND_IO_TIMEOUT_SEC, .tv_usec = 0 };
+    setsockopt(back_fd, SOL_SOCKET, SO_RCVTIMEO, &iot, sizeof(iot));
+    setsockopt(back_fd, SOL_SOCKET, SO_SNDTIMEO, &iot, sizeof(iot));
 
     /* Read POST body if needed */
     char *cl_ptr = strcasestr(req_buf, "Content-Length:");
